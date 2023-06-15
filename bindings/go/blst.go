@@ -117,6 +117,10 @@ package blst
 // {   blst_scalar_from_bendian(ret, in);
 //     return blst_sk_check(ret);
 // }
+// static bool go_scalar_from_lendian(blst_scalar *ret, const byte *in)
+// {   blst_scalar_from_lendian(ret, in);
+//     return blst_sk_check(ret);
+// }
 // static bool go_hash_to_scalar(blst_scalar *ret,
 //                               const byte *msg, size_t msg_len,
 //                               const byte *DST, size_t DST_len)
@@ -3177,9 +3181,23 @@ func (s *Scalar) Serialize() []byte {
 	return out[:]
 }
 
+func (s *Scalar) SerializeLittleEndian() []byte {
+	var out [BLST_SCALAR_BYTES]byte
+	C.blst_lendian_from_scalar((*C.byte)(&out[0]), s)
+	return out[:]
+}
+
 func (s *Scalar) Deserialize(in []byte) *Scalar {
 	if len(in) != BLST_SCALAR_BYTES ||
 		!C.go_scalar_from_bendian(s, (*C.byte)(&in[0])) {
+		return nil
+	}
+	return s
+}
+
+func (s *Scalar) DeserializeLittleEndian(in []byte) *Scalar {
+	if len(in) != BLST_SCALAR_BYTES ||
+		!C.go_scalar_from_lendian(s, (*C.byte)(&in[0])) {
 		return nil
 	}
 	return s
